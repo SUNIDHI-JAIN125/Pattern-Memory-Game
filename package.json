@@ -1,0 +1,21 @@
+{
+  "name": "pattern-memory-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsc -b && node ./dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.0.1",
+    "@types/express": "^5.0.0",
+    "@types/ws": "^8.5.13",
+    "express": "^4.21.2",
+    "prisma": "^6.0.1",
+    "typescript": "^5.7.2",
+    "ws": "^8.18.0"
+  }
+}
