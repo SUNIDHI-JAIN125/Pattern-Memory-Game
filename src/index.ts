@@ -1,10 +1,26 @@
-import express from "express";
 import { WebSocket, WebSocketServer } from "ws";
 import { PrismaClient } from "@prisma/client";
 
-const app = express();
 const client = new PrismaClient();
-const wss = new WebSocketServer({ port: 8080 });
+
+
+const WS_PORT = parseInt(process.env.WS_PORT || "8080", 10);
+
+const wss = new WebSocketServer({
+  port: WS_PORT,
+  verifyClient: (info, done) => {
+    const origin = info.origin;
+    const allowedOrigins = ["*"];
+    if (allowedOrigins.includes(origin)) {
+      done(true); 
+    } else {
+      done(false, 403, "Origin not allowed");
+    }
+  },
+});
+
+
+console.log(`WebSocket server running on port ${WS_PORT}`);
 
 type Player = {
   socket: WebSocket;
@@ -356,4 +372,3 @@ function endGame(arenaId: string) {
 
   delete arenas[arenaId];
 }
-
