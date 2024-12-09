@@ -232,12 +232,12 @@ wss.on("connection", (ws) => {
 });
 
 
+
+// Retry round if both the players failed 
 function retryRound(arenaId: string) {
   const arena = arenas[arenaId];
   if (!arena) return;
-
   arena.submissions = []; 
-
   arena.players.forEach((player) => {
     player.socket.send(
       JSON.stringify({
@@ -301,6 +301,8 @@ function startSecondRound(arenaId: string) {
   }, 3000);
 }
 
+
+
 function startThirdRound(arenaId: string) {
   const arena = arenas[arenaId];
   if (!arena) return;
@@ -333,6 +335,7 @@ function startThirdRound(arenaId: string) {
     }, 2000);
   }, 3000);
 }
+
 
 function endGame(arenaId: string) {
   const arena = arenas[arenaId];
