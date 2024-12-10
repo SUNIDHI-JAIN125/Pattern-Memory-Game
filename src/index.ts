@@ -6,18 +6,7 @@ const client = new PrismaClient();
 
 const WS_PORT = parseInt(process.env.WS_PORT || "8080", 10);
 
-const wss = new WebSocketServer({
-  port: WS_PORT,
-  verifyClient: (info, done) => {
-    const origin = info.origin;
-    const allowedOrigins = ["*"];
-    if (allowedOrigins.includes(origin)) {
-      done(true); 
-    } else {
-      done(false, 403, "Origin not allowed");
-    }
-  },
-});
+const wss = new WebSocketServer({port: WS_PORT});
 
 
 console.log(`WebSocket server running on port ${WS_PORT}`);
