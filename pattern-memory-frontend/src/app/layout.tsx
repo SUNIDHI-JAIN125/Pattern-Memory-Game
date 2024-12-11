@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Neonderthaw, Kablammo, Lugrasimo} from 'next/font/google';
 import "./globals.css";
 
 const geistSans = localFont({
@@ -11,6 +12,17 @@ const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+});
+
+const lugrasimo = Lugrasimo({
+  weight: '400',
+  subsets: ['latin'],
+});
+
+const kablammo = Kablammo({
+  weight: '400',
+  subsets: ['latin'],
+  style: ['normal'],
 });
 
 export const metadata: Metadata = {

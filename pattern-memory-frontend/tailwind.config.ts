@@ -1,3 +1,4 @@
+import {Lugrasimo} from "next/font/google";
 import type { Config } from "tailwindcss";
 
 export default {
@@ -9,6 +10,10 @@ export default {
   ],
   theme: {
   	extend: {
+		fontFamily: {
+			neonderthaw: ['Neonderthaw', 'cursive'], 
+			lugrasimo:['Lugrasimo','normal','latin']
+		  },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
