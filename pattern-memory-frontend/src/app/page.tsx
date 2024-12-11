@@ -4,25 +4,34 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useToast } from "@/hooks/use-toast"
 
 export default function Home() {
   const [username, setUsername] = useState('');
   const [arenaId, setArenaId] = useState('');
-  const [ws, setWs] = useState<WebSocket | null>(null); // Explicitly type as WebSocket | null
+  const [ws, setWs] = useState<WebSocket | null>(null);
   const router = useRouter();
+  const { toast } = useToast()
 
   useEffect(() => {
-    const socket = new WebSocket('ws://pattern-memory-game.onrender.com/');
+    let socket = new WebSocket('wss://pattern-memory-game.onrender.com/');
     setWs(socket);
 
     socket.onopen = () => console.log('WebSocket connected');
-    socket.onclose = () => console.log('WebSocket disconnected');
 
+    const handleReconnection = () => {
+      setTimeout(() => {
+        socket = new WebSocket('wss://pattern-memory-game.onrender.com/');
+        setWs(socket);
+      }, 5000);
+    };
+
+    socket.onclose = handleReconnection;
     return () => socket.close();
   }, []);
 
   const handleCreateArena = () => {
-    if (username && ws) { // Ensure ws is non-null before sending
+    if (username && ws) {
       const createArenaData = { event: 'create-arena', username };
       ws.send(JSON.stringify(createArenaData));
 
@@ -30,35 +39,51 @@ export default function Home() {
         const data = JSON.parse(message.data);
         if (data.event === 'arena-created') {
           setArenaId(data.arenaId);
+          toast({
+            title: 'Arena Created',
+            description: `Arena ID: ${data.arenaId}`
+          });
           router.push(`/arena/${data.arenaId}`);
         }
       };
     } else {
-      alert('Enter your username and ensure WebSocket is connected!');
+      toast({
+        title: 'Error',
+        description: 'Enter your username and ensure WebSocket is connected!'
+      });
     }
   };
 
   const handleJoinArena = () => {
-    if (username && arenaId && ws) { // Ensure ws is non-null before sending
+    if (username && arenaId && ws) {
       const joinArenaData = { event: 'join-arena', username, arenaId };
       ws.send(JSON.stringify(joinArenaData));
 
       ws.onmessage = (message) => {
         const data = JSON.parse(message.data);
         if (data.event === 'arena_ready') {
+          toast({
+            title: 'Arena Ready',
+            description: 'Successfully joined the arena!'
+          });
           router.push(`/arena/${arenaId}`);
         } else if (data.event === 'error') {
-          alert(data.message);
+          toast({
+            title: 'Error',
+            description: data.message
+          });
         }
       };
     } else {
-      alert('Enter your username and arena ID, and ensure WebSocket is connected!');
+      toast({
+        title: 'Error',
+        description: 'Enter your username and arena ID, and ensure WebSocket is connected!'
+       });
     }
   };
 
   return (
     <div className="relative h-screen w-screen">
-      {/* Background Image */}
       <Image
         src="/gamebg5.avif"
         alt="Game Background"
@@ -67,22 +92,17 @@ export default function Home() {
         quality={100}
         className="-z-10"
       />
-
-      {/* Overlay */}
       <div className="h-full flex flex-col items-center bg-black bg-opacity-50">
         <div className="mt-20"></div>
         <div className="mt-20"></div>
 
-        {/* Title */}
         <h1 className="text-purple-400 font-lugrasimo font-semibold text-center text-4xl md:text-5xl xl:text-[5rem] mb-20 mt-20">
           Pattern Memory Game
         </h1>
 
-        {/* Buttons */}
         <div className="flex flex-col sm:flex-row sm:space-x-20 mt-2 lg:mt-8 ">
-          {/* Create Arena Button */}
           <Dialog>
-            <DialogTrigger>
+            <DialogTrigger asChild>
               <button className="relative font-montserrat text-xl lg:text-2xl xl:text-3xl p-1 lg:p-3 mb-20 font-bold text-gray-900 hover:scale-105 transition-transform duration-300">
                 <span className="absolute -inset-1.5 bg-gradient-to-r from-purple-400 to-pink-100 rounded-lg blur group-hover:from-pink-400 group-hover:to-purple-200 transition-colors"></span>
                 <span className="absolute -inset-3 border-4 border-purple-400 rounded-lg"></span>
@@ -91,7 +111,7 @@ export default function Home() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className='text-xl mt-2 mb-2'>Create Arena</DialogTitle>
+                <DialogTitle className="text-xl mt-2 mb-2">Create Arena</DialogTitle>
               </DialogHeader>
               <input
                 type="text"
@@ -101,9 +121,8 @@ export default function Home() {
                 onChange={(e) => setUsername(e.target.value)}
               />
               <DialogFooter>
-
                 <button
-                  className="px-4 py-2  bg-purple-700 text-white text-xl rounded-lg hover:bg-purple-500"
+                  className="px-4 py-2 bg-purple-700 text-white text-xl rounded-lg hover:bg-purple-500"
                   onClick={handleCreateArena}
                 >
                   Create
@@ -112,10 +131,9 @@ export default function Home() {
             </DialogContent>
           </Dialog>
 
-          {/* Join Arena Button */}
           <Dialog>
-            <DialogTrigger>
-              <button className="relative font-montserrat text-xl  lg:text-2xl xl:text-3xl p-1 lg:p-3 mb-20 font-bold text-gray-900 hover:scale-105 transition-transform duration-300">
+            <DialogTrigger asChild>
+              <button className="relative font-montserrat text-xl lg:text-2xl xl:text-3xl p-1 lg:p-3 mb-20 font-bold text-gray-900 hover:scale-105 transition-transform duration-300">
                 <span className="absolute -inset-1.5 bg-gradient-to-r from-purple-400 to-pink-100 rounded-lg blur group-hover:from-pink-400 group-hover:to-purple-200 transition-colors"></span>
                 <span className="absolute -inset-3 border-4 border-purple-400 rounded-lg"></span>
                 <span className="relative font-sans italic text-black">Join Arena</span>
@@ -123,7 +141,7 @@ export default function Home() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className='text-xl'>Join Arena</DialogTitle>
+                <DialogTitle className="text-xl">Join Arena</DialogTitle>
               </DialogHeader>
               <input
                 type="text"
