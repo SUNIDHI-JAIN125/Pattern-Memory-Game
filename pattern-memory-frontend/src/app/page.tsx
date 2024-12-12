@@ -2,26 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { ClipboardCopy, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { useToast } from "@/hooks/use-toast"
+import CreateArenaDialog from '../components/ScreenComponents/CreateArenaDialog';
+import JoinArenaDialog from '../components/ScreenComponents/JoinArenaDialog';
 
 export default function Home() {
-  const [username, setUsername] = useState('');
   const [arenaId, setArenaId] = useState('');
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [isArenaCreated, setIsArenaCreated] = useState(false); 
   const router = useRouter();
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   useEffect(() => {
-    let socket = new WebSocket('wss://pattern-memory-game.onrender.com/');
+    const socket = new WebSocket('wss://pattern-memory-game.onrender.com/');
     setWs(socket);
 
     socket.onopen = () => console.log('WebSocket connected');
 
     const handleReconnection = () => {
       setTimeout(() => {
-        socket = new WebSocket('wss://pattern-memory-game.onrender.com/');
+        const socket = new WebSocket('wss://pattern-memory-game.onrender.com/');
         setWs(socket);
       }, 5000);
     };
@@ -30,56 +32,35 @@ export default function Home() {
     return () => socket.close();
   }, []);
 
-  const handleCreateArena = () => {
-    if (username && ws) {
-      const createArenaData = { event: 'create-arena', username };
-      ws.send(JSON.stringify(createArenaData));
+  const handleArenaCreated = (arenaId: string) => {
+    setArenaId(arenaId);
+    setIsArenaCreated(true);
 
-      ws.onmessage = (message) => {
-        const data = JSON.parse(message.data);
-        if (data.event === 'arena-created') {
-          setArenaId(data.arenaId);
-          toast({
-            title: 'Arena Created',
-            description: `Arena ID: ${data.arenaId}`
-          });
-          router.push(`/arena/${data.arenaId}`);
-        }
-      };
-    } else {
-      toast({
-        title: 'Error',
-        description: 'Enter your username and ensure WebSocket is connected!'
-      });
-    }
+
+    if(ws) {
+    ws.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      if (data.event === 'arena_ready') {
+        toast({
+          title: 'Arena Ready',
+          description: 'The second player has joined the arena!'
+        });
+        router.push(`/arena/${arenaId}`);
+      }
+    };
+  }
+};
+
+  const handleArenaJoined = (arenaId:string) => {
+    router.push(`/arena/${arenaId}`);
   };
 
-  const handleJoinArena = () => {
-    if (username && arenaId && ws) {
-      const joinArenaData = { event: 'join-arena', username, arenaId };
-      ws.send(JSON.stringify(joinArenaData));
-
-      ws.onmessage = (message) => {
-        const data = JSON.parse(message.data);
-        if (data.event === 'arena_ready') {
-          toast({
-            title: 'Arena Ready',
-            description: 'Successfully joined the arena!'
-          });
-          router.push(`/arena/${arenaId}`);
-        } else if (data.event === 'error') {
-          toast({
-            title: 'Error',
-            description: data.message
-          });
-        }
-      };
-    } else {
-      toast({
-        title: 'Error',
-        description: 'Enter your username and arena ID, and ensure WebSocket is connected!'
-       });
-    }
+  const handleCopyArenaId = () => {
+    navigator.clipboard.writeText(arenaId);
+    toast({
+      title: 'Arena ID Copied',
+      description: 'Share with Player 2'
+    });
   };
 
   return (
@@ -94,80 +75,30 @@ export default function Home() {
       />
       <div className="h-full flex flex-col items-center bg-black bg-opacity-50">
         <div className="mt-20"></div>
-        <div className="mt-20"></div>
-
         <h1 className="text-purple-400 font-lugrasimo font-semibold text-center text-4xl md:text-5xl xl:text-[5rem] mb-20 mt-20">
           Pattern Memory Game
         </h1>
-
-        <div className="flex flex-col sm:flex-row sm:space-x-20 mt-2 lg:mt-8 ">
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="relative font-montserrat text-xl lg:text-2xl xl:text-3xl p-1 lg:p-3 mb-20 font-bold text-gray-900 hover:scale-105 transition-transform duration-300">
-                <span className="absolute -inset-1.5 bg-gradient-to-r from-purple-400 to-pink-100 rounded-lg blur group-hover:from-pink-400 group-hover:to-purple-200 transition-colors"></span>
-                <span className="absolute -inset-3 border-4 border-purple-400 rounded-lg"></span>
-                <span className="relative font-sans italic text-black">Create New Arena</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="text-xl mt-2 mb-2">Create Arena</DialogTitle>
-              </DialogHeader>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg mb-4"
-                placeholder="Enter Your Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-              <DialogFooter>
-                <button
-                  className="px-4 py-2 bg-purple-700 text-white text-xl rounded-lg hover:bg-purple-500"
-                  onClick={handleCreateArena}
-                >
-                  Create
-                </button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="relative font-montserrat text-xl lg:text-2xl xl:text-3xl p-1 lg:p-3 mb-20 font-bold text-gray-900 hover:scale-105 transition-transform duration-300">
-                <span className="absolute -inset-1.5 bg-gradient-to-r from-purple-400 to-pink-100 rounded-lg blur group-hover:from-pink-400 group-hover:to-purple-200 transition-colors"></span>
-                <span className="absolute -inset-3 border-4 border-purple-400 rounded-lg"></span>
-                <span className="relative font-sans italic text-black">Join Arena</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="text-xl">Join Arena</DialogTitle>
-              </DialogHeader>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg mb-4"
-                placeholder="Enter Your Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg mb-4"
-                placeholder="Enter Arena ID"
-                value={arenaId}
-                onChange={(e) => setArenaId(e.target.value)}
-              />
-              <DialogFooter>
-                <button
-                  className="px-4 py-2 bg-purple-700 text-xl text-white rounded-lg hover:bg-purple-500"
-                  onClick={handleJoinArena}
-                >
-                  Join Arena
-                </button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+        
+        
+        {isArenaCreated ? (
+          <div className="flex  mt-2 flex-col items-center">
+      
+          <div className="flex items-center space-x-4 cursor-pointer  transition duration-300"
+            onClick={handleCopyArenaId} >
+           <span className="font-bold mt-2 text-xl lg:text-3xl text-red-200 italic">{arenaId}</span>
+            <ClipboardCopy className="w-6  mt-2 h-6 hover:scale-110 text-red-400" />
+          </div>
+          
+          <p className=" text-xl lg:text-2xl  text-purple-200  mt-4 ">Share this ID with your friend to join the arena!</p>
+          
         </div>
+        
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:space-x-20 mt-2 xl:mt-8">
+            <CreateArenaDialog ws={ws} onArenaCreated={handleArenaCreated} />
+            <JoinArenaDialog ws={ws} onArenaJoined={handleArenaJoined} />
+          </div>
+        )}
       </div>
     </div>
   );
