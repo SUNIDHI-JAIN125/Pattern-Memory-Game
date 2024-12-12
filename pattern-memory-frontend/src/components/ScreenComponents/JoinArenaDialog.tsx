@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface JoinArenaDialogProps {
   ws: WebSocket | null;
-  onArenaJoined: (arenaId: string) => void; 
+  onArenaJoined: (arenaId: string,player1:string,username:string,) => void; 
 }
 
 const JoinArenaDialog: React.FC<JoinArenaDialogProps> = ({ ws, onArenaJoined }) => {
@@ -20,7 +20,7 @@ const JoinArenaDialog: React.FC<JoinArenaDialogProps> = ({ ws, onArenaJoined }) 
       ws.onmessage = (message) => {
         const data = JSON.parse(message.data);
         if (data.event === 'arena_ready') {
-          onArenaJoined(arenaId); 
+          onArenaJoined(arenaId,data.players[0],username); 
           toast({
             title: 'Arena Ready',
             description: 'Successfully joined the arena!'
