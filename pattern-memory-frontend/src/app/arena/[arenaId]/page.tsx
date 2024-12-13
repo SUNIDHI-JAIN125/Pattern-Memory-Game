@@ -135,7 +135,7 @@ export default function ArenaPage() {
     setGridVisible(true); 
     setTimeout(() => {
       setPatternVisible(false);
-    }, 2000);
+    }, 2500);
   };
   
 
