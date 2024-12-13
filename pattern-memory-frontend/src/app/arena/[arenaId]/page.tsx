@@ -203,12 +203,6 @@ export default function ArenaPage() {
   
   
     <div className="text-yellow-300 text-2xl xl:text-3xl p-4 rounded shadow-lg">
-  {overallWinner ? (<div className='text-white text-3xl mb-4'>
-    
-    Overall Winner
-    <br />
-    </div>) :(<></>)}
-
       {gameMessage}
     </div>
   
