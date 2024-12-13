@@ -133,6 +133,7 @@ wss.on("connection", (ws) => {
               event: "round-start",
               gridSize: firstRound.gridSize,
               pattern: firstRound.pattern,
+              roundNo: firstRound.number
             })
           );
         });
