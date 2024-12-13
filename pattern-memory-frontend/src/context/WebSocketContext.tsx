@@ -5,9 +5,12 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 interface WebSocketContextType {
   ws: WebSocket | null;
   setWs: React.Dispatch<React.SetStateAction<WebSocket | null>>;
+  mainUser: string | null;
+  setMainUser: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
+
 
 
 interface WebSocketProviderProps {
@@ -17,6 +20,7 @@ interface WebSocketProviderProps {
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [mainUser, setMainUser] = useState<string | null>(null);
 
   useEffect(() => {
     const socket = new WebSocket('wss://pattern-memory-game.onrender.com/');
@@ -39,12 +43,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   }, []);
 
   return (
-    <WebSocketContext.Provider value={{ ws, setWs }}>
+    <WebSocketContext.Provider value={{ ws, setWs, mainUser, setMainUser }}>
       {children}
     </WebSocketContext.Provider>
   );
 };
-
 
 export const useWebSocket = (): WebSocketContextType => {
   const context = useContext(WebSocketContext);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from "@/hooks/use-toast"
+import { useWebSocket } from '@/context/WebSocketContext';
 
 interface CreateArenaDialogProps {
   ws: WebSocket | null;
@@ -10,6 +11,8 @@ interface CreateArenaDialogProps {
 const CreateArenaDialog: React.FC<CreateArenaDialogProps> = ({ ws, onArenaCreated }) => {
   const [username, setUsername] = useState('');
   const { toast } = useToast();
+  const { setMainUser } = useWebSocket();
+  
 
   const handleCreateArena = () => {
     if (username && ws) {
@@ -19,6 +22,7 @@ const CreateArenaDialog: React.FC<CreateArenaDialogProps> = ({ ws, onArenaCreate
       ws.onmessage = (message) => {
         const data = JSON.parse(message.data);
         if (data.event === 'arena-created') {
+          setMainUser(username);
           onArenaCreated(data.arenaId);
           toast({
             title: 'Arena Created',

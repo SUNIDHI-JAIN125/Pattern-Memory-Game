@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from '@/context/WebSocketContext';
 
 interface JoinArenaDialogProps {
   ws: WebSocket | null;
@@ -11,6 +12,8 @@ const JoinArenaDialog: React.FC<JoinArenaDialogProps> = ({ ws, onArenaJoined }) 
   const [username, setUsername] = useState('');
   const [arenaId, setArenaId] = useState('');
   const { toast } = useToast();
+  const { setMainUser } = useWebSocket();
+
 
   const handleJoinArena = () => {
     if (username && arenaId && ws) {
@@ -20,6 +23,7 @@ const JoinArenaDialog: React.FC<JoinArenaDialogProps> = ({ ws, onArenaJoined }) 
       ws.onmessage = (message) => {
         const data = JSON.parse(message.data);
         if (data.event === 'arena_ready') {
+          setMainUser(username);
           onArenaJoined(arenaId,data.players[0],username); 
           toast({
             title: 'Arena Ready',
