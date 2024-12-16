@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useWebSocket } from '@/context/WebSocketContext';
 import GameGrid from '@/components/ScreenComponents/GameGrid';
+import confetti from 'canvas-confetti';
 
 export default function ArenaPage() {
   const { arenaId } = useParams();
@@ -26,9 +27,18 @@ export default function ArenaPage() {
   const [gridcols, setGridcols] = useState(0);
   const [gameMessage, setGameMessage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null); 
-  const [overallWinner, setOverallWinner] = useState(false);
+  const [overallWinner, setOverallWinner] = useState<string | null>(null);
 
   useEffect(() => {
+    if (overallWinner) {
+      confetti({
+        particleCount: 500,
+        spread: 120,
+        origin: { y: 0.8 },
+      });
+    }
+
+
     if (arenaId) {
       console.log(`Arena ID: ${arenaId}`);
     } else {
@@ -68,8 +78,8 @@ export default function ArenaPage() {
         }
 
         if (data.event === "game-over") {
-          setOverallWinner(true);
-          setGameMessage(data.message);
+          setOverallWinner(data.message.split(" ")[0]);
+          setGameMessage(null);
           setGridVisible(false);
           
         }
@@ -84,7 +94,7 @@ export default function ArenaPage() {
 
       }
     }
-  }, [arenaId, player1, player2, ws, toast]);
+  }, [arenaId, player1, player2, ws, toast,overallWinner]);
 
   const handleCountdown = () => {
     setGameMessage(null); 
@@ -168,6 +178,12 @@ export default function ArenaPage() {
     }
   };
 
+
+  const handlePlayAgain = () => {
+    window.location.href = '/';
+  };
+
+
   return (
     <div className="relative h-screen w-screen bg-black flex items-center justify-center">
       <div className="relative h-[100vh] w-[100vw] flex flex-col items-center">
@@ -199,9 +215,20 @@ export default function ArenaPage() {
   )}
  
  <div className="absolute inset-0 flex flex-col items-center xl:top-[20%]">
+ {overallWinner && (
+          <div className="flex flex-col items-center">
+            <h1 className="text-yellow-400 text-4xl mb-4">{`${overallWinner} is the Champion!`}</h1>
+            <button
+              onClick={handlePlayAgain}
+              className="px-4 mt-4 py-2 bg-transparent border-4 border-yellow-400 border-double text-white text-xl rounded-lg hover:bg-yellow-300 hover:text-black transition"
+            >
+
+
+              Play Again
+            </button>
+          </div>
+        )}
   {gameMessage ? (
-  
-  
     <div className="text-yellow-300 text-2xl xl:text-3xl p-4 rounded shadow-lg">
       {gameMessage}
     </div>
