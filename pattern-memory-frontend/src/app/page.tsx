@@ -1,5 +1,6 @@
 'use client';
-
+import Link from "next/link";
+import { FaGithub} from "react-icons/fa";
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ClipboardCopy } from 'lucide-react';
@@ -60,6 +61,17 @@ export default function Home() {
 
   return (
     <div className="relative h-screen w-screen">
+
+<div className="absolute top-5 right-24 flex items-center gap-2 text-gray-100">
+          <FaGithub size={20} />
+          <Link
+            href="https://github.com/SUNIDHI-JAIN125/Pattern-Memory-Game"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="hover:underline">GitHub</span>
+          </Link>
+        </div>
 
       <Image
         src="/gamebg5.avif"
